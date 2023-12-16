@@ -52,9 +52,9 @@ def main():
     physxPackageSourceDir = packageSystemDir / 'PhysX'
     outputDir = packageSystemDir / f'PhysX-{args.platformName}'
 
-    cmakeFindFile = physxPackageSourceDir / f'FindPhysX_{args.platformName}.cmake.template'
+    cmakeFindFile = physxPackageSourceDir / f'FindPhysX4_{args.platformName}.cmake.template'
     if not cmakeFindFile.exists():
-        cmakeFindFile = physxPackageSourceDir / 'FindPhysX.cmake.template'
+        cmakeFindFile = physxPackageSourceDir / 'FindPhysX4.cmake.template'
     cmakeFindFileTemplate = cmakeFindFile.open().read()
 
     buildPhysXInProfileConfigPatch = (physxPackageSourceDir / 'Build-physx-profile-config.patch')
