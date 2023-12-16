@@ -15,7 +15,9 @@ import pathlib
 from pathlib import Path
 import shutil
 import subprocess
+import platform
 from tempfile import TemporaryDirectory
+
 
 import sys
 sys.path.append(str(Path(__file__).parent.parent.parent / 'Scripts'))
@@ -26,6 +28,7 @@ class PhysXBuilder(object):
         self._workingDir = workingDir
         self._packageSystemDir = basePackageSystemDir
         self._platform = targetPlatform
+        self._hostPlatformLower = platform.system().lower()
         self._env = dict(os.environ)
         self._env.update(
             GW_DEPS_ROOT=str(workingDir),
@@ -149,10 +152,24 @@ class PhysXBuilder(object):
             
     def build(self, buildAsStaticLibs):
         physx_dir = self.workingDir / 'physx'
+
+        # Update the packman URLs
+        packman_dir = physx_dir / 'buildtools' / 'packman'
+        check_call_packman_update = functools.partial(subprocess.check_call,
+            cwd=packman_dir, # generate_projects script will fail if not called from physx directory
+            env=self.env
+        )
+
+        if self._hostPlatformLower == 'windows':
+            update_pacman_call = [ str(packman_dir / 'packman.cmd'), 'update', '-y']
+        else:
+            update_pacman_call = [ str(packman_dir / 'packman'), 'update', '-y']
+
+        check_call_packman_update(update_pacman_call)
         
         preset, bin_folder, install_folder, is_multiconfig = self.platform_params[self.platform]
         
-        if self.platform == 'windows' or self.platform == 'android':
+        if self._hostPlatformLower == 'windows':
             generate_projects_cmd =  str(physx_dir / 'generate_projects.bat')
         else:
             generate_projects_cmd = str(physx_dir / 'generate_projects.sh')
@@ -252,12 +269,12 @@ class PhysXBuilder(object):
         
         extraLibsPerPlatform = {
             'windows': [
-                ['\${EXTRA_SHARED_LIBS}',
+                ['\\${EXTRA_SHARED_LIBS}',
                  ''.join(('\n',
                     '\t${PATH_TO_SHARED_LIBS}/PhysXDevice64.dll\n',
                     '\t${PATH_TO_SHARED_LIBS}/PhysXGpu_64.dll\n'
                 ))],
-                ['\${EXTRA_STATIC_LIBS_NON_MONOLITHIC}',
+                ['\\${EXTRA_STATIC_LIBS_NON_MONOLITHIC}',
                  ''.join(('\n',
                     '\t${PATH_TO_LIBS}/LowLevel_static_64.lib\n',
                     '\t${PATH_TO_LIBS}/LowLevelAABB_static_64.lib\n',
@@ -268,23 +285,23 @@ class PhysXBuilder(object):
                 ))],
             ],
             'linux': [
-                ['\${EXTRA_SHARED_LIBS}', '${PATH_TO_SHARED_LIBS}/libPhysXGpu_64.so'],
-                ['\${EXTRA_STATIC_LIBS_NON_MONOLITHIC}', ''],
+                ['\\${EXTRA_SHARED_LIBS}', '${PATH_TO_SHARED_LIBS}/libPhysXGpu_64.so'],
+                ['\\${EXTRA_STATIC_LIBS_NON_MONOLITHIC}', ''],
             ],
             'linux-aarch64': [
-                ['\${EXTRA_SHARED_LIBS}', '${PATH_TO_SHARED_LIBS}/libPhysXGpu_64.so'],
-                ['\${EXTRA_STATIC_LIBS_NON_MONOLITHIC}', ''],
+                ['\\${EXTRA_SHARED_LIBS}', '${PATH_TO_SHARED_LIBS}/libPhysXGpu_64.so'],
+                ['\\${EXTRA_STATIC_LIBS_NON_MONOLITHIC}', ''],
             ],
             'mac': [
-                ['\${EXTRA_SHARED_LIBS}', ''],
-                ['\${EXTRA_STATIC_LIBS_NON_MONOLITHIC}', ''],
+                ['\\${EXTRA_SHARED_LIBS}', ''],
+                ['\\${EXTRA_STATIC_LIBS_NON_MONOLITHIC}', ''],
             ],
             # iOS has its own FindPhysX file where it doesn't need to do any adjustments.
             'ios': [
             ],
             'android': [
-                ['\${EXTRA_SHARED_LIBS}', ''],
-                ['\${EXTRA_STATIC_LIBS_NON_MONOLITHIC}', ''],
+                ['\\${EXTRA_SHARED_LIBS}', ''],
+                ['\\${EXTRA_STATIC_LIBS_NON_MONOLITHIC}', ''],
             ],
         }
         
@@ -295,6 +312,14 @@ class PhysXBuilder(object):
 
 def main():
     parser = argparse.ArgumentParser()
+    parser.add_argument(
+        '--package-name',
+        required=True
+    )
+    parser.add_argument(
+        '--package-rev',
+        required=True
+    )
     parser.add_argument(
         '--platform-name',
         dest='platformName',
@@ -319,11 +344,8 @@ def main():
         cmakeFindFile = packageSourceDir / 'FindPhysX.cmake'
 
     with TemporaryDirectory() as tempdir:
-        # Package Name
-        revision = 'rev1'
-        if args.platformName == 'windows':
-            revision = 'rev2'
-        packageName = f'PhysX-5.1.1-{revision}-{args.platformName}'
+
+        packageName = f'{args.package_name}-{args.package_rev}-{args.platformName}'
         
         # Version 5.1.1 commits
         if args.platformName == 'mac':
@@ -335,7 +357,9 @@ def main():
         else:
             commit = '0bbcff3d0c541325f4d14c36ee18f24e22e35e6e' # Commit for 5.1.1 version
             
-        tempdir = Path(tempdir)
+        #tempdir = Path(tempdir)
+        tempdir = packageSourceDir / 'temp' / 'test'
+        tempdir.mkdir(parents=True)
         builder = PhysXBuilder(workingDir=tempdir, basePackageSystemDir=packageSystemDir, targetPlatform=args.platformName)
         builder.clone(lockToCommit=commit)
         
