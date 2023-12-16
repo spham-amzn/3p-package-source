@@ -339,9 +339,9 @@ def main():
     packageSourceDir = packageSystemDir / 'PhysX5'
     packageRoot = packageSourceDir / 'temp' / f'PhysX5-{args.platformName}'
 
-    cmakeFindFile = packageSourceDir / f'FindPhysX_{args.platformName}.cmake'
+    cmakeFindFile = packageSourceDir / f'FindPhysX5_{args.platformName}.cmake'
     if not cmakeFindFile.exists():
-        cmakeFindFile = packageSourceDir / 'FindPhysX.cmake'
+        cmakeFindFile = packageSourceDir / 'FindPhysX5.cmake'
 
     with TemporaryDirectory() as tempdir:
 
@@ -357,9 +357,7 @@ def main():
         else:
             commit = '0bbcff3d0c541325f4d14c36ee18f24e22e35e6e' # Commit for 5.1.1 version
             
-        #tempdir = Path(tempdir)
-        tempdir = packageSourceDir / 'temp' / 'test'
-        tempdir.mkdir(parents=True)
+        tempdir = Path(tempdir)
         builder = PhysXBuilder(workingDir=tempdir, basePackageSystemDir=packageSystemDir, targetPlatform=args.platformName)
         builder.clone(lockToCommit=commit)
         
