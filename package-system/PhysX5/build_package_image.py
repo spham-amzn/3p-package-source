@@ -13,9 +13,9 @@ import os
 import re
 import pathlib
 from pathlib import Path
+import platform
 import shutil
 import subprocess
-import platform
 from tempfile import TemporaryDirectory
 
 
