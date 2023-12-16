@@ -74,7 +74,7 @@ target_compile_definitions(${TARGET_WITH_NAMESPACE} INTERFACE ${${MY_NAME}_COMPI
 if(TARGET "3rdParty::PhysX")
     message(FATAL_ERROR, "You cannot enable multiple PhysX gems for the same project.")
 endif()
-add_library(${TARGET_WITH_NAMESPACE} ALIAS "3rdParty::PhysX")
+add_library("3rdParty::PhysX" ALIAS ${TARGET_WITH_NAMESPACE})
 
 # Frameworks do not need to get added as runtime dependencies
 # since they are handled by XCode directly. Frameworks will

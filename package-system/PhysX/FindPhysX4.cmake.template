@@ -124,6 +124,6 @@ endif()
 if(TARGET "3rdParty::PhysX")
     message(FATAL_ERROR, "You cannot enable multiple PhysX gems for the same project.")
 endif()
-add_library($${TARGET_WITH_NAMESPACE} ALIAS "3rdParty::PhysX")
+add_library("3rdParty::PhysX" ALIAS $${TARGET_WITH_NAMESPACE})
 
 set($${MY_NAME}_FOUND True)
