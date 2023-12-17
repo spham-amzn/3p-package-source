@@ -261,7 +261,7 @@ class PhysXBuilder(object):
             json.dump(settings, fh, indent=4)
 
     def writeCMakeFindFile(self, packageDir: pathlib.Path, cmakeFindFile):
-        dst = packageDir / 'FindPhysX.cmake'
+        dst = packageDir / 'FindPhysX5.cmake'
         shutil.copy2(
             src=cmakeFindFile,
             dst=dst
