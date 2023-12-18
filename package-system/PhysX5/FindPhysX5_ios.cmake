@@ -70,12 +70,6 @@ ly_target_include_system_directories(TARGET ${TARGET_WITH_NAMESPACE} INTERFACE $
 target_link_libraries(${TARGET_WITH_NAMESPACE} INTERFACE ${${MY_NAME}_LIBRARIES})
 target_compile_definitions(${TARGET_WITH_NAMESPACE} INTERFACE ${${MY_NAME}_COMPILE_DEFINITIONS})
 
-# Only one PhysX gem is allowed to be enabled per project
-if(TARGET "3rdParty::PhysX")
-    message(FATAL_ERROR, "You cannot enable multiple PhysX gems for the same project.")
-endif()
-add_library("3rdParty::PhysX" ALIAS ${TARGET_WITH_NAMESPACE})
-
 # Frameworks do not need to get added as runtime dependencies
 # since they are handled by XCode directly. Frameworks will
 # be copied into the app when constructed by XCode.

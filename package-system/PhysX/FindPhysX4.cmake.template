@@ -120,10 +120,4 @@ if(DEFINED $${MY_NAME}_RUNTIME_DEPENDENCIES)
     ly_add_target_files(TARGETS $${TARGET_WITH_NAMESPACE} FILES $${$${MY_NAME}_RUNTIME_DEPENDENCIES})
 endif()
 
-# Only one PhysX gem is allowed to be enabled per project
-if(TARGET "3rdParty::PhysX")
-    message(FATAL_ERROR, "You cannot enable multiple PhysX gems for the same project.")
-endif()
-add_library("3rdParty::PhysX" ALIAS $${TARGET_WITH_NAMESPACE})
-
 set($${MY_NAME}_FOUND True)
