@@ -10,7 +10,10 @@
 # TEMP_FOLDER and TARGET_INSTALL_ROOT get set from the pull_and_build_from_git.py script
 
 # Arg 1: The zlib package name
-ZLIB_FOLDER_NAME=$1
+
+BASE_DOCKER_IMAGE=$1
+BASE_DOCKER_TAG=$2
+ZLIB_FOLDER_NAME=$3
 
 # Make sure docker is installed
 DOCKER_VERSION=$(docker --version)
@@ -30,10 +33,19 @@ cp docker_build_assimp_linux.sh temp/
 
 pushd temp
 
+echo BASE_DOCKER_IMAGE=${BASE_DOCKER_IMAGE}
+echo BASE_DOCKER_TAG=${BASE_DOCKER_TAG} 
+echo ZLIB_FOLDER_PATH=${ZLIB_FOLDER_NAME}
+
 # Build the Docker Image
 echo "Building the docker build script"
 DOCKER_IMAGE_NAME=assimp_linux_3p
-docker build --build-arg ZLIB_FOLDER_PATH=$ZLIB_FOLDER_NAME -f ../Dockerfile -t ${DOCKER_IMAGE_NAME}:latest . 
+docker build \
+--build-arg BASE_DOCKER_IMAGE=${BASE_DOCKER_IMAGE} \
+--build-arg BASE_DOCKER_TAG=${BASE_DOCKER_TAG} \
+--build-arg ZLIB_FOLDER_PATH=${ZLIB_FOLDER_NAME} \
+-f ../Dockerfile -t ${DOCKER_IMAGE_NAME}:latest . 
+
 if [ $? -ne 0 ]
 then
     echo "Error occurred creating Docker image ${DOCKER_IMAGE_NAME}:latest." 
@@ -52,6 +64,7 @@ fi
 
 # Run the Docker Image
 echo "Running build script in the docker image"
+echo docker run -v $TEMP_FOLDER/src:/data/workspace/src -v $TEMP_FOLDER/$ZLIB_FOLDER_NAME:/data/workspace/$ZLIB_FOLDER_NAME -it --tty ${DOCKER_IMAGE_NAME}:latest /bin/bash
 docker run -v $TEMP_FOLDER/src:/data/workspace/src -v $TEMP_FOLDER/$ZLIB_FOLDER_NAME:/data/workspace/$ZLIB_FOLDER_NAME --tty ${DOCKER_IMAGE_NAME}:latest /data/workspace/docker_build_assimp_linux.sh 
 if [ $? -ne 0 ]
 then

@@ -9,7 +9,15 @@
 # for its dependencies
 #
 
-FROM public.ecr.aws/ubuntu/ubuntu:20.04_stable
+ARG BASE_DOCKER_IMAGE=public.ecr.aws/ubuntu/ubuntu
+
+ARG BASE_DOCKER_TAG=20.04_stable
+
+FROM ${BASE_DOCKER_IMAGE}:${BASE_DOCKER_TAG}
+
+ARG BASE_DOCKER_IMAGE
+
+ARG BASE_DOCKER_TAG
  
 WORKDIR /data/workspace
 
@@ -33,9 +41,23 @@ RUN apt-get install -y build-essential \
                        libminizip-dev \
                        git \
                        cmake \
-                       ninja-build
+                       ninja-build \
+                       wget \
+                       libssl-dev \
+                       g++ \
+                       checkinstall
 
-RUN apt upgrade -y
+# Build cmake 3.20 from source
+RUN cd /data/workspace && \
+    mkdir -p cmake_src && \
+    cd cmake_src && \
+    wget https://github.com/Kitware/CMake/releases/download/v3.20.0/cmake-3.20.0.tar.gz && \
+    tar -zvxf cmake-3.20.0.tar.gz && \
+    cd cmake-3.20.0 && \
+    ./bootstrap && \
+    make -j8 && \
+    checkinstall --pkgname=cmake --pkgversion="3.20-custom" --default && \
+    hash -r
 
 # Prepare a target folder within the container to install the build artifacts tp
 RUN mkdir -p /data/workspace/build
@@ -46,4 +68,3 @@ ARG CACHEBUST=1
 
 # Copy the build script specific to this Docker script in order to execute the build
 COPY docker_build_assimp_linux.sh /data/workspace/
-
