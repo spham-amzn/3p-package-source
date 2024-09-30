@@ -57,7 +57,24 @@
                     ["zlib-1.2.11-rev5-linux", "9be5ea85722fc27a8645a9c8a812669d107c68e6baa2ca0740872eaeb6a8b0fc", ""]
                 ],
                 "custom_build_cmd": [
-                    "./build-linux-x86.sh"
+                    "./build-linux-x86.sh",
+                    "xcb"
+                ],
+                "custom_install_cmd": [
+                    "{python}", "copy_platform_cmakes.py"
+                ]
+            },
+            "Linux-wayland": {
+                "package_version": "5.15.2-rev9",
+                "patch_file": "qt-linux.patch",
+                "depends_on_packages": [
+                    ["OpenSSL-1.1.1t-rev1-linux", "63aea898b7afe8faccd0c7261e62d2f8b7b870f678a4520d5be81e5815542b39", ""],
+                    ["tiff-4.2.0.15-rev3-linux", "2377f48b2ebc2d1628d9f65186c881544c92891312abe478a20d10b85877409a", ""],
+                    ["zlib-1.2.11-rev5-linux", "9be5ea85722fc27a8645a9c8a812669d107c68e6baa2ca0740872eaeb6a8b0fc", ""]
+                ],
+                "custom_build_cmd": [
+                    "./build-linux-x86.sh",
+                    "wayland"
                 ],
                 "custom_install_cmd": [
                     "{python}", "copy_platform_cmakes.py"

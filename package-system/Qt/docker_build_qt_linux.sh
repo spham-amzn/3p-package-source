@@ -9,6 +9,9 @@
 
 # TEMP_FOLDER and TARGET_INSTALL_ROOT get set from the pull_and_build_from_git.py script
 
+# Arg 1: The tiff package name
+QCB_TYPE=$1
+
 # Read the dependent 3P library paths from the arguments
 TIFF_PACKAGE_DIR=/data/workspace/o3de_tiff
 ZLIB_PACKAGE_DIR=/data/workspace/o3de_zlib
@@ -45,41 +48,86 @@ INSTALL_PATH=/data/workspace/qt
 [[ -d $BUILD_PATH ]] || mkdir $BUILD_PATH
 cd $BUILD_PATH
 
-echo Configuring Qt...
-../src/configure -prefix ${INSTALL_PATH} \
-                 -opensource \
-                 -nomake examples \
-                 -nomake tests \
-                 -confirm-license \
-                 -no-icu \
-                 -dbus \
-                 -no-separate-debug-info \
-                 -release \
-                 -force-debug-info \
-                 -qt-libpng \
-                 -qt-libjpeg \
-                 -no-feature-vnc \
-                 -no-feature-linuxfb \
-                 --tiff=system \
-                 -qt-zlib \
-                 -v \
-                 -no-cups \
-                 -no-glib \
-                 -no-feature-renameat2 \
-                 -no-feature-getentropy \
-                 -no-feature-statx \
-                 -no-egl \
-                 -qpa xcb \
-                 -xcb-xlib \
-                 -openssl \
-                 -I $TIFF_INCDIR \
-                 -I $ZLIB_INCDIR \
-                 -I $OPENSSL_INCDIR \
-                 -L $TIFF_LIBDIR \
-                 -L $ZLIB_LIBDIR \
-                 -L $OPENSSL_LIBDIR \
-                 -c++std c++1z \
-                 -fontconfig
+if [ $QCB_TYPE == "xcb" ]
+then
+    echo "Configuring Qt for xcb..."
+    ../src/configure -prefix ${INSTALL_PATH} \
+                     -opensource \
+                     -nomake examples \
+                     -nomake tests \
+                     -confirm-license \
+                     -no-icu \
+                     -dbus \
+                     -no-separate-debug-info \
+                     -release \
+                     -force-debug-info \
+                     -qt-libpng \
+                     -qt-libjpeg \
+                     -no-feature-vnc \
+                     -no-feature-linuxfb \
+                     --tiff=system \
+                     -qt-zlib \
+                     -v \
+                     -no-cups \
+                     -no-glib \
+                     -no-feature-renameat2 \
+                     -no-feature-getentropy \
+                     -no-feature-statx \
+                     -no-egl \
+                     -qpa xcb \
+                     -xcb-xlib \
+                     -openssl \
+                     -I $TIFF_INCDIR \
+                     -I $ZLIB_INCDIR \
+                     -I $OPENSSL_INCDIR \
+                     -L $TIFF_LIBDIR \
+                     -L $ZLIB_LIBDIR \
+                     -L $OPENSSL_LIBDIR \
+                     -c++std c++1z \
+                     -fontconfig
+
+elif [ $QCB_TYPE == "wayland" ]
+then
+    echo "Configuring Qt for wayland..."
+    ../src/configure -prefix ${INSTALL_PATH} \
+                     -opensource \
+                     -nomake examples \
+                     -nomake tests \
+                     -confirm-license \
+                     -no-icu \
+                     -dbus \
+                     -no-separate-debug-info \
+                     -release \
+                     -force-debug-info \
+                     -qt-libpng \
+                     -qt-libjpeg \
+                     -no-feature-vnc \
+                     -no-feature-linuxfb \
+                     --tiff=system \
+                     -qt-zlib \
+                     -v \
+                     -no-cups \
+                     -no-glib \
+                     -no-feature-renameat2 \
+                     -no-feature-getentropy \
+                     -no-feature-statx \
+                     -no-egl \
+                     -feature-wayland-server \
+                     -qpa wayland \
+                     -I $TIFF_INCDIR \
+                     -I $ZLIB_INCDIR \
+                     -I $OPENSSL_INCDIR \
+                     -L $TIFF_LIBDIR \
+                     -L $ZLIB_LIBDIR \
+                     -L $OPENSSL_LIBDIR \
+                     -c++std c++1z \
+                     -fontconfig
+else
+    echo "Missing 'xcb' or 'wayland' argument"
+    exit 1
+fi
+
+
 if [ $? -ne 0 ]
 then
     echo "Failed to configure Qt"

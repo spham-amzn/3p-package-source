@@ -9,13 +9,16 @@
 
 # TEMP_FOLDER and TARGET_INSTALL_ROOT get set from the pull_and_build_from_git.py script
 
-# Arg 1: The tiff package name
+# Arg 1: QPA Type
+QPA_TYPE=$1
+
+# Arg 2: The tiff package name
 TIFF_FOLDER_NAME=$1
 
-# Arg 2: The zlib package name
+# Arg 3: The zlib package name
 ZLIB_FOLDER_NAME=$2
 
-# Arg 3: The openssl package name
+# Arg 4: The openssl package name
 OPENSSL_FOLDER_NAME=$3
 
 # Make sure docker is installed
@@ -54,7 +57,7 @@ fi
 
 # Run the Docker Image
 echo "Running docker build script"
-docker run -v $TEMP_FOLDER/src:/data/workspace/src -v $TEMP_FOLDER/$TIFF_FOLDER_NAME:/data/workspace/o3de_tiff -v $TEMP_FOLDER/$ZLIB_FOLDER_NAME:/data/workspace/o3de_zlib -v $TEMP_FOLDER/$OPENSSL_FOLDER_NAME:/data/workspace/o3de_openssl --tty ${DOCKER_IMAGE_NAME}:latest ./docker_build_qt_linux.sh
+docker run -v $TEMP_FOLDER/src:/data/workspace/src -v $TEMP_FOLDER/$TIFF_FOLDER_NAME:/data/workspace/o3de_tiff -v $TEMP_FOLDER/$ZLIB_FOLDER_NAME:/data/workspace/o3de_zlib -v $TEMP_FOLDER/$OPENSSL_FOLDER_NAME:/data/workspace/o3de_openssl --tty ${DOCKER_IMAGE_NAME}:latest ./docker_build_qt_linux.sh ${QPA_TYPE}
 if [ $? -ne 0 ]
 then
     echo "Error occurred running Docker image ${DOCKER_IMAGE_NAME}:latest." 
