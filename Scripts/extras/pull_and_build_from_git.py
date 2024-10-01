@@ -34,7 +34,10 @@ be different by platform, and all are required. The keys are:
 * package_name          : The base name of the package, used for constructing the filename and folder structures
 * package_url           : The package url that will be placed in the PackageInfo.json
 * package_license       : The type of license that will be described in the PackageInfo.json
-* package_license_file  : The name of the source code license file (expected at the root of the source folder pulled from git)
+
+
+* package_license_file  : The name of the source code license file (expected at the root of the source folder pulled from git). (One of package_license_file or build_package_license_file must be specified)
+* build_package_license_file  : The name of the license file (expected at the root of built package folder). (One of package_license_file or build_package_license_file must be specified)
 
 The following keys can exist at the root level or the target-platform level:
 
@@ -238,7 +241,6 @@ class PackageInfo(object):
             self.package_name = build_config["package_name"]
             self.package_url = build_config["package_url"]
             self.package_license = build_config["package_license"]
-            self.package_license_file = build_config["package_license_file"]
         except KeyError as e:
             raise BuildError(f"Invalid build config. Missing required key : {str(e)}")
 
@@ -248,8 +250,15 @@ class PackageInfo(object):
                 raise BuildError(f"Required key '{value_key}' not found in build config")
             return result
 
+        # Get either the package_license_file (from the sync'd source folder) or the 'build_package_license_file' from the built package
+        self.package_license_file = _get_value("package_license_file", required=False)
+        self.build_package_license_file = _get_value("build_package_license_file", required=False)
+        if not self.package_license_file and not self.build_package_license_file:
+            raise BuildError(f"Either 'package_license_file' or 'build_package_license_file' must be set in the build config")
+
         self.git_url = _get_value("git_url", required=False)
         self.git_tag = _get_value("git_tag", required=False)
+        self.git_commit = _get_value("git_commit", required=False)
         self.src_package_url = _get_value("src_package_url", required=False)
         self.src_package_sha1 = _get_value("src_package_sha1", required=False)
 
@@ -258,14 +267,13 @@ class PackageInfo(object):
         if self.git_url and self.src_package_url:
             raise BuildError(f"Only 'git_url' or 'src_package_url' can be specified, not both. Both were specified in this build config.")
 
-        if self.git_url and not self.git_tag:
-            raise BuildError(f"Missing 'git_tag' entry for the git repo  {self.git_url} in the build config.")
+        if self.git_url and not self.git_tag and not self.git_commit:
+            raise BuildError(f"Missing 'git_tag' or 'git_commit' entry for the git repo  {self.git_url} in the build config.")
         if self.src_package_url and not self.src_package_sha1:
             raise BuildError(f"Missing 'src_package_sha1' entry for the source package at  {self.src_package_url} in the build config.")
 
         self.package_version = _get_value("package_version")
         self.patch_file = _get_value("patch_file", required=False)
-        self.git_commit = _get_value("git_commit", required=False)
         self.cmake_find_template = _get_value("cmake_find_template", required=False)
         self.cmake_find_source = _get_value("cmake_find_source", required=False)
         self.cmake_find_target = _get_value("cmake_find_target")
@@ -292,6 +300,7 @@ class PackageInfo(object):
         Write to the target 'PackageInfo.json' file for the package
         :param install_path:  The folder to write the file to
         """
+        assert self.package_license_file or self.build_package_license_file, "Either self.package_license_file or self.build_package_license_file should be set at this point"
         package_info_target_file = install_path / "PackageInfo.json"
         if package_info_target_file.is_file():
             package_info_target_file.unlink()
@@ -301,7 +310,7 @@ class PackageInfo(object):
             'platform_name': self.platform_name.lower(),
             'package_url': self.package_url,
             'package_license': self.package_license,
-            'package_license_file': os.path.basename(self.package_license_file)
+            'package_license_file': os.path.basename(self.package_license_file or self.build_package_license_file)
         }
         package_info_content = string.Template(PackageInfo.PACKAGE_INFO_TEMPLATE).substitute(package_info_env)
         package_info_target_file.write_text(package_info_content)
@@ -500,22 +509,39 @@ class BuildInfo(object):
         Perform a clone to the local temp folder
         """
 
-        print(f"Cloning {self.package_info.package_name}/{self.package_info.git_tag} to {str(self.src_folder.absolute())}")
+        if self.package_info.git_tag:
 
-        working_dir = str(self.src_folder.parent.absolute())
-        relative_src_dir = self.src_folder.name
-        clone_cmd = ['git',
-                     'clone',
-                     '--single-branch',
-                     '--recursive',
-                     '--branch',
-                     self.package_info.git_tag,
-                     self.package_info.git_url,
-                     relative_src_dir]
-        clone_result = subprocess.run(subp_args(clone_cmd),
-                                      shell=True,
-                                      capture_output=True,
-                                      cwd=working_dir)
+            print(f"Cloning {self.package_info.package_name}/{self.package_info.git_tag} to {str(self.src_folder.absolute())}")
+            working_dir = str(self.src_folder.parent.absolute())
+            relative_src_dir = self.src_folder.name
+            clone_cmd = ['git',
+                         'clone',
+                         '--single-branch',
+                         '--recursive',
+                         '--branch',
+                         self.package_info.git_tag,
+                         self.package_info.git_url,
+                         relative_src_dir]
+            clone_result = subprocess.run(subp_args(clone_cmd),
+                                          shell=True,
+                                          capture_output=True,
+                                          cwd=working_dir)
+        elif self.package_info.git_commit:
+            print(f"Cloning {self.package_info.package_name}/{self.package_info.git_tag} to {str(self.src_folder.absolute())}")
+            working_dir = str(self.src_folder.parent.absolute())
+            relative_src_dir = self.src_folder.name
+            clone_cmd = ['git',
+                         'clone',
+                         '--recursive',
+                         self.package_info.git_url,
+                         relative_src_dir]
+            clone_result = subprocess.run(subp_args(clone_cmd),
+                                          shell=True,
+                                          capture_output=True,
+                                          cwd=working_dir)
+        else:
+            raise BuildError(f"Missing git_tag/git_commit in the settings.")
+
         if clone_result.returncode != 0:
             raise BuildError(f"Error cloning from GitHub: {clone_result.stderr.decode('UTF-8', 'ignore')}")
 
@@ -566,44 +592,49 @@ class BuildInfo(object):
 
             # Sync to the source folder
             if self.src_folder.is_dir():
-                print(f"Checking git status of path '{self.src_folder}' ...")
-                git_status_cmd = ['git', 'status', '-s']
-                call_result = subprocess.run(subp_args(git_status_cmd),
-                                             shell=True,
-                                             capture_output=True,
-                                             cwd=str(self.src_folder.resolve()))
-                # If any error, this is not a valid git folder, proceed with cloning
-                if call_result.returncode != 0:
-                    print(f"Path '{self.src_folder}' is not a valid git folder. Deleting and re-cloning...")
-                    # Not a valid git folder, okay to remove and re-clone
+                if not self.package_info.git_commit:
+                    print(f"Checking git status of path '{self.src_folder}' ...")
+                    git_status_cmd = ['git', 'status', '-s']
+                    call_result = subprocess.run(subp_args(git_status_cmd),
+                                                 shell=True,
+                                                 capture_output=True,
+                                                 cwd=str(self.src_folder.resolve()))
+                    # If any error, this is not a valid git folder, proceed with cloning
+                    if call_result.returncode != 0:
+                        print(f"Path '{self.src_folder}' is not a valid git folder. Deleting and re-cloning...")
+                        # Not a valid git folder, okay to remove and re-clone
+                        delete_folder(self.src_folder)
+                        self.clone_to_local()
+                    else:
+                        # If this is a valid git folder, check if the patch was applied or if the source was
+                        # altered.
+                        if len(call_result.stdout.decode('utf-8', 'ignore')):
+                            # If anything changed, then restore the entire source tree
+                            print(f"Path '{self.src_folder}' was modified. Restoring...")
+                            git_restore_cmd = ['git', 'restore', '--recurse-submodules', ':/']
+                            call_result = subprocess.run(subp_args(git_restore_cmd),
+                                                         shell=True,
+                                                         capture_output=False,
+                                                         cwd=str(self.src_folder.resolve()))
+                            if call_result.returncode != 0:
+                                # If we cannot restore through git, then delete the folder and re-clone
+                                print(f"Unable to restore {self.src_folder}. Deleting and re-cloning...")
+                                delete_folder(self.src_folder)
+                                self.clone_to_local()
+
+                    # Do a re-pull
+                    git_pull_cmd = ['git',
+                                    'pull']
+                    call_result = subprocess.run(subp_args(git_pull_cmd),
+                                                 shell=True,
+                                                 capture_output=True,
+                                                 cwd=str(self.src_folder.resolve()))
+                    if call_result.returncode != 0:
+                        raise BuildError(f"Error pulling source from GitHub: {call_result.stderr.decode('UTF-8', 'ignore')}")
+                else:
+                    # Cannot restore when syncing to a tag specifically. Clear and re-clone
                     delete_folder(self.src_folder)
                     self.clone_to_local()
-                else:
-                    # If this is a valid git folder, check if the patch was applied or if the source was
-                    # altered.
-                    if len(call_result.stdout.decode('utf-8', 'ignore')):
-                        # If anything changed, then restore the entire source tree
-                        print(f"Path '{self.src_folder}' was modified. Restoring...")
-                        git_restore_cmd = ['git', 'restore', '--recurse-submodules', ':/']
-                        call_result = subprocess.run(subp_args(git_restore_cmd),
-                                                     shell=True,
-                                                     capture_output=False,
-                                                     cwd=str(self.src_folder.resolve()))
-                        if call_result.returncode != 0:
-                            # If we cannot restore through git, then delete the folder and re-clone
-                            print(f"Unable to restore {self.src_folder}. Deleting and re-cloning...")
-                            delete_folder(self.src_folder)
-                            self.clone_to_local()
-
-                # Do a re-pull
-                git_pull_cmd = ['git',
-                                'pull']
-                call_result = subprocess.run(subp_args(git_pull_cmd),
-                                             shell=True,
-                                             capture_output=True,
-                                             cwd=str(self.src_folder.resolve()))
-                if call_result.returncode != 0:
-                    raise BuildError(f"Error pulling source from GitHub: {call_result.stderr.decode('UTF-8', 'ignore')}")
             else:
                 self.clone_to_local()
         elif self.package_info.src_package_url:
@@ -972,6 +1003,11 @@ class BuildInfo(object):
         """
         Generate the package file (PackageInfo.json)
         """
+
+        if self.package_info.build_package_license_file:
+            check_license_file = self.build_folder / self.package_info.build_package_license_file
+            if not check_license_file.is_file():
+                raise BuildError(f"Missing expected license file at {check_license_file}")
 
         self.package_info.write_package_info(self.package_install_root)
 
