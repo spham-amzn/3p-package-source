@@ -1,0 +1,15 @@
+diff --git a/physx/buildtools/presets/public/linux.xml b/physx/buildtools/presets/public/linux.xml
+index 7c1edf5a..023889b5 100644
+--- a/physx/buildtools/presets/public/linux.xml
++++ b/physx/buildtools/presets/public/linux.xml
+@@ -2,8 +2,8 @@
+ <preset name="linux" comment="Linux clang PhysX SDK general settings">
+   <platform targetPlatform="linux" compiler="clang" />
+   <CMakeSwitches>
+-    <cmakeSwitch name="PX_BUILDSNIPPETS" value="True" comment="Generate the snippets" />
+-    <cmakeSwitch name="PX_BUILDPVDRUNTIME" value="True" comment="Generate the OmniPVD project" />
++    <cmakeSwitch name="PX_BUILDSNIPPETS" value="False" comment="Generate the snippets" />
++    <cmakeSwitch name="PX_BUILDPVDRUNTIME" value="False" comment="Generate the OmniPVD project" />
+     <cmakeSwitch name="PX_GENERATE_STATIC_LIBRARIES" value="True" comment="Generate static libs" />    
+   </CMakeSwitches>
+   <CMakeParams>
