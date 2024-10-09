@@ -20,57 +20,92 @@ then
     exit 1
 fi
 
+if [ "${BUILD_ARCHITECTURE}" == "amd64" ]
+then
+    echo "Building for amd64"
+    PRESET=linux
+    BIN_FOLDER=linux.clang
+else
+    echo "Building for aarch64"
+    PRESET=linux-aarch64
+    BIN_FOLDER=linux.aarch64
+fi
 
-cd $WORKSPACE/vcpkg
+
+cd $WORKSPACE/src
 if [ $? -ne 0 ]
 then
-    echo "Folder $WORKSPACE/vcpkg is missing"
+    echo "Folder $WORKSPACE/src is missing"
     exit 1
 fi
 
-./vcpkg install physx:x64-linux --no-binarycaching
+# Initialize packman
+pushd physx/buildtools/packman
+./packman update -y
 if [ $? -ne 0 ]
 then
-    echo "Failed to build static PhysX libraries"
+    echo "Packman bootstrap failed"
+    popd
+    exit 1
+fi
+popd
+
+# Generate the project
+pushd physx
+./generate_projects.sh $PRESET
+if [ $? -ne 0 ]
+then
+    echo "Generate project failed"
+    popd
+    exit 1
+fi
+popd
+
+
+# Build static libraries
+echo "Building static libraries"
+
+
+cmake --build $WORKSPACE/src/physx/compiler/linux-release --target install
+if [ $? -ne 0 ]
+then
+    echo "Build release failed"
     exit 1
 fi
 
-./vcpkg install physx:x64-linux-shared --no-binarycaching
+
+cmake --build $WORKSPACE/src/physx/compiler/linux-profile
 if [ $? -ne 0 ]
 then
-    echo "Failed to build static PhysX libraries"
+    echo "Build profile failed"
     exit 1
 fi
 
-mkdir -p $BUILD_FOLDER
-
-cp $(find $WORKSPACE/vcpkg/buildtrees/physx -name LICENSE.md) $BUILD_FOLDER/
+cmake --build $WORKSPACE/src/physx/compiler/linux-checked
 if [ $? -ne 0 ]
 then
-    echo "Failed to find License file LICENSE.md"
+    echo "Build checked failed"
     exit 1
 fi
 
-cp $(find $WORKSPACE/vcpkg/buildtrees/physx -name README.md | grep -v externals | grep -v kaplademo) $BUILD_FOLDER/
+cmake --build $WORKSPACE/src/physx/compiler/linux-debug
 if [ $? -ne 0 ]
 then
-    echo "Failed to find README.md"
+    echo "Build debug failed"
     exit 1
 fi
 
-cp -r /data/workspace/vcpkg/packages/physx_x64-linux $BUILD_FOLDER/static
-if [ $? -ne 0 ]
-then
-    echo "Failed copy over the static libraries to $BUILD_FOLDER/static"
-    exit 1
-fi
+# Prepare the build folder
 
-cp -r /data/workspace/vcpkg/packages/physx_x64-linux-shared $BUILD_FOLDER/shared
-if [ $? -ne 0 ]
-then
-    echo "Failed copy over the shared libraries to $BUILD_FOLDER/shared"
-    exit 1
-fi
+mkdir -p $WORKSPACE/build
+mkdir -p $WORKSPACE/build/bin
+cp -r $WORKSPACE/src/physx/bin/${BIN_FOLDER} $WORKSPACE/build/bin/static
+cp -r $WORKSPACE/src/physx/install/${PRESET}/PhysX/include $WORKSPACE/build/include
+
+mkdir -p $WORKSPACE/build/source/source/fastxml
+cp -r $WORKSPACE/src/physx/source/fastxml/include $WORKSPACE/build/source/fastxml/
+cp $WORKSPACE/src/physx/README.md $WORKSPACE/build/
+cp $WORKSPACE/src/physx/version.txt $WORKSPACE/build/
 
 echo Build created at $BUILD_FOLDER
 

@@ -20,6 +20,7 @@ ARG INPUT_DOCKER_BUILD_SCRIPT=build.sh
 
 FROM ${INPUT_ARCHITECTURE}/${INPUT_IMAGE}
 
+ARG INPUT_ARCHITECTURE
 ARG INPUT_DOCKER_BUILD_SCRIPT
 ARG INPUT_BUILD_FOLDER
 ARG INPUT_DEPENDENT_PACKAGE_FOLDERS
@@ -27,7 +28,7 @@ ARG INPUT_DEP_CURL_GIT_TAG
 
 ENV WORKSPACE=/data/workspace
 ENV DOCKER_BUILD_PATH=$WORKSPACE/$INPUT_BUILD_FOLDER
-ENV DOWNLOADED_PACKAGE_FOLDERS=$INPUT_DEPENDENT_PACKAGE_FOLDERS
+ENV BUILD_ARCHITECTURE=$INPUT_ARCHITECTURE
 
 
 WORKDIR $WORKSPACE
@@ -38,7 +39,20 @@ RUN apt-get clean && apt-get update
 # Setup time zone and locale data (necessary for SSL and HTTPS packages)
 RUN DEBIAN_FRONTEND="noninteractive" apt-get -y install tzdata locales keyboard-configuration
 
-RUN apt-get install -y curl zip unzip tar g++ git
+RUN apt-get install -y curl zip unzip tar g++ git wget build-essential libssl-dev checkinstall clang
+
+
+# Build cmake 3.20 from source
+RUN cd /data/workspace && \
+    mkdir -p cmake_src && \
+    cd cmake_src && \
+    wget https://github.com/Kitware/CMake/releases/download/v3.20.0/cmake-3.20.0.tar.gz && \
+    tar -zvxf cmake-3.20.0.tar.gz && \
+    cd cmake-3.20.0 && \
+    ./bootstrap && \
+    make -j8 && \
+    checkinstall --pkgname=cmake --pkgversion="3.20-custom" --default && \
+    hash -r
 
 ARG CACHEBUST=1
 

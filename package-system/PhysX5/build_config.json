@@ -1,7 +1,7 @@
 {
    "git_url":"https://github.com/NVIDIA-Omniverse/PhysX",
    "git_commit":"0bbcff3d0c541325f4d14c36ee18f24e22e35e6e",
-   "package_name":"PhysX5",
+   "package_name":"PhysX",
    "package_version":"5.1.1-rev5",
    "package_url":"https://github.com/NVIDIA-Omniverse/PhysX",
    "package_license":"BSD-3-Clause",
