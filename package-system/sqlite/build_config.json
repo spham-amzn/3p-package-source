@@ -35,15 +35,30 @@
       },
       "Linux":{
          "Linux":{
-            "package_version":"3.37.2-rev1",
+            "package_version":"3.37.2-rev2",
             "custom_build_cmd": [
-               "./build_unix_like.sh"
+               "./build-linux.sh",
+               "sqlite",
+               "20.04",
+               "x86_64"
             ],
             "custom_install_cmd": [
                "./package_unix_like.sh"
             ]
          },
-	 "Linux-aarch64": "@Linux"
+      "Linux-aarch64":{
+         "Linux":{
+            "package_version":"3.37.2-rev2",
+            "custom_build_cmd": [
+               "./build-linux.sh",
+               "sqlite",
+               "20.04",
+               "aarch64"
+            ],
+            "custom_install_cmd": [
+               "./package_unix_like.sh"
+            ]
+         }
       }
    }
 }
