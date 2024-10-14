@@ -9,6 +9,9 @@
 rm -rf temp/build_test
 mkdir temp/build_test
 
+echo "DOWNLOADED_PACKAGE_FOLDERS=$DOWNLOADED_PACKAGE_FOLDERS"
+echo "PACKAGE_ROOT=$PACKAGE_ROOT"
+
 cmake -S test -B temp/build_test -G Ninja -DCMAKE_BUILD_TYPE=Release  \
     -DCMAKE_MODULE_PATH="$DOWNLOADED_PACKAGE_FOLDERS;$PACKAGE_ROOT" || exit 1
 
