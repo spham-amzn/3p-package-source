@@ -1,0 +1,3 @@
+[submodule "Scripts/core"]
+	path = Scripts/core
+	url = https://github.com/o3de/3p-package-scripts.git
