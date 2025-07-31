@@ -59,9 +59,9 @@ cd temp
 mkdir $SCRIPT_DIR/package
 
 echo ""
-echo "---------------- Cloning python 3.10.13 from git ----------------"
+echo "---------------- Cloning python 3.13.5 from git ----------------"
 echo ""
-git clone https://github.com/python/cpython.git --branch "v3.10.13" --depth 1
+git clone https://github.com/python/cpython.git --branch "v3.13.5" --depth 1
 retVal=$?
 if [ $retVal -ne 0 ]; then
     echo "Error cloning python from https://github.com/python/cpython.git"
@@ -106,20 +106,19 @@ echo "---------------- Installing spinx documentation tool into the v-env ------
 echo ""
 $VENV_BIN_DIR/python3 -m pip install sphinx
 
-
 cd $RELOC_SRC_DIR
 
-echo ""
-echo "---------------- Checking out specific commit hash of relocatable-python ----------------"
-echo ""
+#echo ""
+#echo "---------------- Checking out specific commit hash of relocatable-python ----------------"
+#echo ""
 # the hash is a known good commit hash.  This also causes it to fail if someone
 # tampers the repo!
-git reset --hard 5e459c3ccea0daaf181f3b1ef2773dbefce1a563
-retVal=$?
-if [ $retVal -ne 0 ]; then
-    echo "Error resetting to specific change!"
-    exit $retVal
-fi
+#git reset --hard 5e459c3ccea0daaf181f3b1ef2773dbefce1a563
+#retVal=$?
+#if [ $retVal -ne 0 ]; then
+#    echo "Error resetting to specific change!"
+#    exit $retVal
+#fi
 
 echo ""
 echo "---------------- patching the relocator ----------------"
@@ -153,7 +152,7 @@ cd Mac
 cd BuildScript
 
 # the following env vars get around a problem compiling tcl/tk
-ac_cv_header_libintl_h=no ac_cv_lib_intl_textdomain=no tcl_cv_strtod_buggy=1 ac_cv_func_strtod=yes SDK_TOOLS_BIN=$VENV_BIN_DIR $VENV_BIN_DIR/python3 ./build-installer.py --universal-archs=intel-64 --build-dir $SCRIPT_DIR/temp/python_build --third-party=$SCRIPT_DIR/temp/downloaded_packages --dep-target=10.15
+ac_cv_header_libintl_h=no ac_cv_lib_intl_textdomain=no tcl_cv_strtod_buggy=1 ac_cv_func_strtod=yes SDK_TOOLS_BIN=$VENV_BIN_DIR $VENV_BIN_DIR/python3 ./build-installer.py --universal-archs=universal2 --build-dir $SCRIPT_DIR/temp/python_build --third-party=$SCRIPT_DIR/temp/downloaded_packages --dep-target=10.15
 retVal=$?
 if [ $retVal -ne 0 ]; then
     echo "Could not build python!"
@@ -168,8 +167,8 @@ cd $RELOC_SRC_DIR
 echo ""
 echo "---------------- Altering the produced framework folder to be relocatable ----------------"
 echo ""
-echo $VENV_BIN_DIR/python3 ./make_relocatable_python_framework.py --install-wheel --upgrade-pip --python-version 3.10.13 --use-existing-framework $FRAMEWORK_OUTPUT_FOLDER/Python.framework
-$VENV_BIN_DIR/python3 ./make_relocatable_python_framework.py --install-wheel --upgrade-pip --python-version 3.10.13 --use-existing-framework $FRAMEWORK_OUTPUT_FOLDER/Python.framework
+echo $VENV_BIN_DIR/python3 ./make_relocatable_python_framework.py --upgrade-pip --python-version 3.13.5 --use-existing-framework $FRAMEWORK_OUTPUT_FOLDER/Python.framework
+$VENV_BIN_DIR/python3 ./make_relocatable_python_framework.py --upgrade-pip --python-version 3.13.5 --use-existing-framework $FRAMEWORK_OUTPUT_FOLDER/Python.framework
 retVal=$?
 if [ $retVal -ne 0 ]; then
     echo "Could not make python relocatable!"
@@ -214,7 +213,7 @@ rm -f $SCRIPT_DIR/package/Python.framework/Versions/3.13/lib/python3.13/ensurepi
 echo ""
 echo "----------------  Cleaning temp folder ----------------"
 echo ""
-rm -rf $SCRIPT_DIR/temp
+# rm -rf $SCRIPT_DIR/temp
 
 echo ""
 echo "DONE! Package layout folder has been created in $SCRIPT_DIR/package"

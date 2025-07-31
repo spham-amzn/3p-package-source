@@ -1,0 +1,6 @@
+{
+    "PackageName" : "python-3.13.5-rev1-darwin-arm64",
+    "License"     : "PSF-2.0",
+    "URL"         : "https://python.org",
+    "LicenseFile" : "LICENSE"
+}
