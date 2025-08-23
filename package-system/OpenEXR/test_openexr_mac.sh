@@ -12,7 +12,8 @@ mkdir temp/build_test
 
 cmake -S test -B temp/build_test -G Xcode \
     -DCMAKE_TOOLCHAIN_FILE=../../../../Scripts/cmake/Platform/Mac/Toolchain_mac.cmake \
-    -DCMAKE_MODULE_PATH="$DOWNLOADED_PACKAGE_FOLDERS;$PACKAGE_ROOT" || exit 1
+    -DCMAKE_MODULE_PATH="$DOWNLOADED_PACKAGE_FOLDERS;$PACKAGE_ROOT" \
+    -DOPENEXR_TEST_VER_3_3=TRUE || exit 1
 
 cmake --build temp/build_test --parallel --config Release || exit 1
 temp/build_test/Release/test_openexr.app/Contents/MacOS/test_openexr || exit 1

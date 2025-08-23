@@ -9,7 +9,12 @@
 #include <ImfHeader.h>
 #include <ImfChannelList.h>
 
+#if defined(OPENEXR_TEST_VER_3_3)
+using namespace Imf_3_3;
+#else
 using namespace Imf_3_1;
+#endif
+
 using namespace Imath_3_1;
 
 int
