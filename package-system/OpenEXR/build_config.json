@@ -78,6 +78,8 @@
             ]
          },
          "Mac-arm64":{
+            "git_tag":"v3.3.5",
+            "package_version":"3.3.5-rev1",
             "build_configs" : ["Release"],
             "depends_on_packages" :[
                ["zlib-1.3.1-rev1-mac-arm64", "2550ca23deca593ffb6487a728c51708ee94e5df394aaa831eb8743d38d6a6e8", ""]
