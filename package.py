@@ -20,7 +20,7 @@ from pathlib import Path
 from typing import List
 import platform
 
-PACKAGING_SCRIPT_PATH = Path(__file__).parent / "Scripts" / "packaging" / "o3de_package_scripts"
+PACKAGING_SCRIPT_PATH = Path(__file__).parent / "Scripts" / "tools"
 sys.path.append(str(PACKAGING_SCRIPT_PATH))
 
 from build_package import BuildPackage
@@ -190,17 +190,18 @@ def build_package(name: str) -> int:
 
 def main(argv: List[str] | None = None) -> int:
     argv = argv if argv is not None else sys.argv[1:]
-    parser = argparse.ArgumentParser(prog="build_package.py", description="List and inspect package build scripts")
+    parser = argparse.ArgumentParser(prog="build_package.py", 
+                                     description="Packaging helper script for managing O3DE 3rd Party pre-built packages.")
     sub = parser.add_subparsers(dest="command", required=True)
 
-    sub.add_parser("list", help="List packages in package-system/")
+    sub.add_parser("list-packages", help="List packages in package-system/")
 
-    b = sub.add_parser("build", help="Show build scripts for a package")
-    b.add_argument("package", help="Package name (directory under package-system)")
+    b = sub.add_parser("build", help="Build a package by its package name")
+    b.add_argument("package", help="The package name to build")
 
     args = parser.parse_args(argv)
 
-    if args.command == "list":
+    if args.command == "list-packages":
         return list_packages()
     if args.command == "build":
         return build_package(args.package)
