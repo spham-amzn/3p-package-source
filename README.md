@@ -7,6 +7,10 @@ Note that the "sources" of most packages are not actually stored here, most "pac
 In general
  * Add your new package to the appropriate package_build_list_host_xxxx file
  * Put the scripts or instructions to construct the package image folder into the package-system subfolder
+ * Build the package locally and test with a local copy of O3DE using the package and hash
+ * Commit changes and push to your fork
+ * Create a Pull Request 
+  
 
 Recommendation would be to make any temp packing in a folder called **/temp/** so as to use the current git ignores.
 
