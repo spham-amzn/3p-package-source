@@ -59,7 +59,7 @@ def get_remote_package_hash(package_name: str, package_server_urls: str = DEFAUL
     cached_package_hashes = REMOTE_CACHE if REMOTE_CACHE else {}
     if package_name in cached_package_hashes:
         return cached_package_hashes[package_name]
-    
+
     for server_url in package_server_urls:
         tls_context = ssl.create_default_context(cafile=certifi.where())
         full_package_url = f"{server_url}/{package_name}.tar.xz.SHA256SUMS"
@@ -135,7 +135,7 @@ def list_packages() -> int:
     # Print header
     print(f"\n{'Package Name':<{max_width}} {'Hash Info':<64} {'Type':<20}")
     print("-" * (max_width + 84))
-    
+
     # Print each package
     for package in packages_list:
 
@@ -146,7 +146,7 @@ def list_packages() -> int:
                 type_info = "Pull and build from Git"
             else:
                 type_info = "Custom Build Script"
-        
+
         if package.valid:
             print(f"{LIGHT_GREY}{package.name:<{max_width}} {package.hash_info:<64} {type_info:<20}{RESET}")
         else:
@@ -155,13 +155,14 @@ def list_packages() -> int:
     if cache_updated:
         with REMOTE_CACHE_FILE.open("w") as cache_file:
             json.dump(REMOTE_CACHE, fp=cache_file)
-    
+
     return 0
 
 
 def build_package(name: str) -> int:
-    output_folder = Path(__file__).parent / "packages"
-    search_path = Path(__file__).parent
+    root_path = Path(__file__).parent.parent.parent
+    output_folder = root_path / "packages"
+    search_path = root_path
     BuildPackage(name, output_folder, search_path)
     return 0
 
