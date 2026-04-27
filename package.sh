@@ -12,7 +12,10 @@
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 SCRIPT="${SCRIPT_DIR}/Scripts/packaging/package.py"
 
-if command -v python &> /dev/null; then
+if command -v python3 &> /dev/null; then
+  python3 "$SCRIPT" "$@"
+  exit $?
+elif command -v python &> /dev/null; then
   python "$SCRIPT" "$@"
   exit $?
 else
