@@ -9,7 +9,7 @@
 # this file is called to make sure that if we request a specific version
 # we respond only to that version
 
-set(PACKAGE_VERSION 3.10.13)
+set(PACKAGE_VERSION 3.13.13)
 set(PACKAGE_VERSION_EXACT False)
 set(PACKAGE_VERSION_COMPATIBLE False)
 
@@ -21,7 +21,7 @@ if (PACKAGE_FIND_VERSION_COUNT GREATER 0 AND NOT PACKAGE_FIND_VERSION_MAJOR EQUA
     return()
 endif()
 
-if (PACKAGE_FIND_VERSION_COUNT GREATER 1 AND NOT PACKAGE_FIND_VERSION_MINOR EQUAL 10)
+if (PACKAGE_FIND_VERSION_COUNT GREATER 1 AND NOT PACKAGE_FIND_VERSION_MINOR EQUAL 13)
     return()
 endif()
 
