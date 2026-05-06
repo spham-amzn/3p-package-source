@@ -4,35 +4,22 @@
 # For complete copyright and license terms please see the LICENSE at the root of this distribution.
 #
 # SPDX-License-Identifier: Apache-2.0 OR MIT
+set -euo pipefail
 
+SCRIPT_PATH="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
+TEMP_DIR=$SCRIPT_PATH/temp
+BUILD_DIR=$TEMP_DIR/python-linux
 
-# Only run tests for packages on the same architecture
-TARGET_ARCH=$1
-CURRENT_HOST_ARCH=$(uname -m)
+echo Quick Python Sanity Test
 
-if [ "${CURRENT_HOST_ARCH}" != "${TARGET_ARCH}" ]
-then
-    echo Cannot run the test for a ${TARGET_ARCH} on the current ${CURRENT_HOST_ARCH} architecture. Skipping test.
-    exit 0
-fi
+pushd $BUILD_DIR/python/bin
 
-echo "Testing python"
+# Version check to ensure python is working and the expected version
+./python3 --version
 
+# Validate basic imports
+./python3 $SCRIPT_PATH/quick_validate_python.py
 
-echo temp/build/python/bin/python3 --version 
-temp/build/python/bin/python3 --version 2>&1
-if [ $? -ne 0 ]
-then
-    echo "Error running validating python interpreter version"
-    exit 1
-fi
-
-echo temp/build/python/bin/python3 quick_validate_python.py
-temp/build/python/bin/python3 quick_validate_python.py 2>&1
-if [ $? -ne 0 ]
-then
-    echo "Error running the python interpreter against quick_validate_python.py"
-    exit 1
-fi
+echo "Python sanity test passed successfully"
 
 exit 0
