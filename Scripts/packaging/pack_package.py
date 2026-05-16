@@ -71,7 +71,7 @@ def PackageUpFolder(package_folder_path, output_folder):
     path_list = list(set(path_list_1 + path_list_2))
     for path_str in path_list:
         individual_path = pathlib.Path(path_str)
-        if not individual_path.is_dir():
+        if not individual_path.is_dir() and individual_path.is_file():
             individual_relpath = individual_path.relative_to(package_folder_path)
             individual_relpath = individual_relpath.as_posix()
             individual_abspath = individual_path.absolute()
