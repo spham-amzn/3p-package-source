@@ -20,7 +20,7 @@ from common import CommonUtils
 # and validator.
 # if you want to actually use the package system (ie, the build scripts, etc) use build_package.py instead.
 
-_archive_buffer_size = 1024 * 1024 * 10 # 10mb buffer
+_archive_buffer_size = 1024 * 1024 * 25 # 25mb buffer
 
 def _NoReadOnlyTarFileFilter(tarinfo):
     # remove any readonly flags from any given tar element
