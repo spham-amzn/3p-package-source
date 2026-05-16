@@ -12,6 +12,7 @@ import argparse
 import lzma
 import stat
 import shutil
+import platform
 from glob import glob
 
 from common import CommonUtils
@@ -20,7 +21,7 @@ from common import CommonUtils
 # and validator.
 # if you want to actually use the package system (ie, the build scripts, etc) use build_package.py instead.
 
-_archive_buffer_size = 1024 * 1024 * 25 # 25mb buffer
+_archive_buffer_size = 1024 * 1024 * 10 # 25mb buffer
 
 def _NoReadOnlyTarFileFilter(tarinfo):
     # remove any readonly flags from any given tar element
@@ -65,8 +66,11 @@ def PackageUpFolder(package_folder_path, output_folder):
     # Using glob.glob will 'see' symlinks, but it skips hidden files. In order to get
     # all files, including hidden ones, and also see symlinks, we need to both approaches
     # and then merge the results.
-    path_list_1 = list(glob(f"{path_to_scan}/**/*", recursive=True))
-    path_list_2 = list(path_to_scan.glob("**/*"))
+
+    # On Darwin, the pathlib.glob is giving problems for large archives, so for now
+    # don't use it and only apply the glob technique
+    path_list_1 = [] if platform.name() == 'Darwin' else list(path_to_scan.glob("**/*"))
+    path_list_2 = list(glob(f"{path_to_scan}/**/*", recursive=True))
 
     path_list = list(set(path_list_1 + path_list_2))
     for path_str in path_list:
